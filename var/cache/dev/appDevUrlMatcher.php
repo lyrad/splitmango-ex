@@ -109,6 +109,16 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
             return array (  '_controller' => 'AppBundle\\Controller\\DefaultController::indexAction',  '_route' => 'homepage',);
         }
 
+        // app_lucky_number
+        if ($pathinfo === '/lucky/number') {
+            return array (  '_controller' => 'AppBundle\\Controller\\LuckyController::numberAction',  '_route' => 'app_lucky_number',);
+        }
+
+        // app_youtube_query
+        if ($pathinfo === '/youtube/query') {
+            return array (  '_controller' => 'AppBundle\\Controller\\YoutubeController::queryAction',  '_route' => 'app_youtube_query',);
+        }
+
         if (0 === strpos($pathinfo, '/log')) {
             if (0 === strpos($pathinfo, '/login')) {
                 // fos_user_security_login
