@@ -1,12 +1,81 @@
 <html>
 <head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script type="text/javascript">
+
+var apiKey = 'AIzaSyBoXxrMGeFvaoxr8FO_XLApUOW-6mFUQRw';
+
+// Load youtube API when client is loaded
+function handleClientLoad() {
+	gapi.client.setApiKey(apiKey);
+	gapi.client.load('youtube', 'v3').then(handleAPIloaded);
+}
+
+// Allow query button
+function handleAPIloaded() {
+	$('#query-button').attr('disabled', false);
+}
+
+// Return HTML from an item retrieved from the youtube.playlistItems.list API
+function renderYoutubeVideo(item) {
+	//console.log(item);
+	return '<div style="margin-bottom:10px;min-height:90px"><div><a href="https://www.youtube.com/watch?v=' + item.snippet.resourceId.videoId + '" target="_blank"><img style="float:left" src="' + item.snippet.thumbnails.default.url + '"></a></div><span><strong>' + item.snippet.title + '</strong></span>, ' + item.snippet.publishedAt  + '<p>' + item.snippet.description  + '</p></div>';	
+}
+
+// Document ready
+$(function() {
+	// When form is submited
+	$( "#youtubequery" ).submit(function( event ) {
+		event.preventDefault();
+		$('#search-container').html('');		
+		
+		// Looking for the username
+		gapi.client.youtube.channels.list({
+			forUsername: $("#youtubequery input[id=username]").val(),
+			maxResults: 1,
+    			part: 'contentDetails'
+ 		}).execute(function(responseChannels) {
+			//console.log(responseChannels);
+
+			// If username not found display an error message
+			if(responseChannels.items.length == 0) {
+				$('#search-container').append("<p>Sorry, youtube user can't be found.</p>");
+			} else {
+				// Looking for the 10 last reccord in the user "upload playlist"
+				gapi.client.youtube.playlistItems.list({
+					playlistId: responseChannels.items[0].contentDetails.relatedPlaylists.uploads,
+					maxResults: 10,
+					part: 'snippet'	
+				}).execute(function(responsePlaylistItems) {
+					// console.log(responsePlaylistItems);
+			
+					// for each item (video), render HTML and append in result div
+					$(responsePlaylistItems.items).each(function( index ) {
+						html = renderYoutubeVideo(this);	
+						$('#search-container').append(html);
+					});
+				});
+			}
+		});
+		
+
+	});
+});
+</script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+
 </head>
 <body>
 	<h1>Youtube querying app</h1>
+	<p>Display the 10 last published videos of a youtube user.</p>
 	<form id="youtubequery" method="POST" action="">
-		<label for="url">Please input a youtube channel URL</label>
-		<input id="url" name="url" type="text" style="width: 400px">
-		<button>Query</button>
+		<label for="username">Please input a <strong>youtube username</strong> (JamesNintendoNerd, screenjunkies...) :</label>
+		<input id="username" name="username" type="text" style="width: 400px">
+		<button id="query-button" disabled="disabled">Query</button>
 	</form>
+
+	<div id="search-container">
+		
+	</div>
 </body>
 </html>
